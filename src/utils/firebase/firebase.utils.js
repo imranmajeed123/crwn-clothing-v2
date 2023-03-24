@@ -9,19 +9,19 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, collection,writeBatch, query, getDocs} from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDDU4V-_QV3M8GyhC9SVieRTDM4dbiT0Yk',
-  authDomain: 'crwn-clothing-db-98d4d.firebaseapp.com',
-  projectId: 'crwn-clothing-db-98d4d',
-  storageBucket: 'crwn-clothing-db-98d4d.appspot.com',
-  messagingSenderId: '626766232035',
-  appId: '1:626766232035:web:506621582dab103a4d08d6',
+  apiKey: "AIzaSyBfK_rmMS_ZViUKH9BNT5Wg26nEHYOYWGw",
+  authDomain: "crwn-db-e29e9.firebaseapp.com",
+  projectId: "crwn-db-e29e9",
+  storageBucket: "crwn-db-e29e9.appspot.com",
+  messagingSenderId: "38403933673",
+  appId: "1:38403933673:web:6b14c463ed3d1496277778",
+  measurementId: "G-SXZ5CG0NJM"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
-
 const googleProvider = new GoogleAuthProvider();
 
 googleProvider.setCustomParameters({
@@ -35,6 +35,33 @@ export const signInWithGoogleRedirect = () =>
   signInWithRedirect(auth, googleProvider);
 
 export const db = getFirestore();
+
+export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => {
+  const collectionRef = collection(db, collectionKey);
+  const batch = writeBatch(db);
+  objectsToAdd.forEach(object => {
+    const docRef = doc(collectionRef, object.title.toLowerCase());
+    batch.set(docRef, object);    
+  });
+
+  await batch.commit();
+
+  console.log('done');
+}
+
+export const getCategoriesAndDocuments= async() => {
+  const collectionRef = collection(db, 'categories');
+  const q = query(collectionRef);
+  const querySnashop = await getDocs(q);
+
+  const categoryMap = querySnashop.docs.reduce((acc, docSnapshot) => {
+    const {title, items} = docSnapshot.data();
+    acc[title.toLowerCase()] = items;
+    return acc;
+  } , {} );
+
+  return categoryMap;
+}
 
 export const createUserDocumentFromAuth = async (
   userAuth,
